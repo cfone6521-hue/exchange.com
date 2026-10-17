@@ -1,0 +1,8 @@
+{
+  "name": "Remix RV.Web3 — Exchange \u0026 Wallet",
+  "description": "Plataforma profissional de exchange de criptomoedas e carteira Web3 com suporte multichain, swaps, livro de ofertas e integração direta à blockchain.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
