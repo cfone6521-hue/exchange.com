@@ -8,7 +8,8 @@ import { marketRouter } from './server/routes/marketRoutes';
 import { adminRouter } from './server/routes/adminRoutes';
 import { walletRouter } from './server/routes/walletRoutes';
 import { gasRouter } from './server/routes/gasRoutes';
-import { contractRouter } from './server/routes/contractRoutes';
+import { cimport tokenRouter from './routes/tokenRoutes';
+  ontractRouter } from './server/routes/contractRoutes';
 import { securityHeaders, rateLimiter } from './server/middleware/security';
 
 dotenv.config();
@@ -42,6 +43,8 @@ async function startServer() {
   app.use('/api/admin', adminRouter);
   app.use('/api/wallet', walletRouter);
   app.use('/api/gas', gasRouter);
+  app.use('/api/tokens', tokenRouter);
+  
   app.use('/api/contract', contractRouter);
 
 
