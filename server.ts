@@ -46,7 +46,7 @@ async function startServer() {
   app.use('/api/tokens', tokenRouter);
   
   app.use('/api/contract', contractRouter);
-  
+
 
 
   // Health check endpoint
