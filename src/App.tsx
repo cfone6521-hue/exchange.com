@@ -1,3 +1,4 @@
+import { ConnectWallet } from './components/ConnectWallet'
 import React, { useState } from 'react';
 import { WalletProvider } from './wallet/WalletContext';
 import { Header } from './components/Header';
