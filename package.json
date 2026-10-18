@@ -1,14 +1,15 @@
+
 {
   "name": "rv-web3",
-  "privado": verdadeiro,
-  "versão": "0.0.1",
-  "tipo": "módulo",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
   "scripts": {
     "dev": "vite",
-    "construir": "vite construir",
-    "pré-visualização": "visualização de prévia"
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "dependências": {
+  "dependencies": {
     "@ethersproject/abi": "^5.8.0",
     "@ethersproject/contracts": "^5.8.0",
     "@ethersproject/providers": "^5.8.0",
