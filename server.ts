@@ -8,8 +8,8 @@ import { marketRouter } from './server/routes/marketRoutes';
 import { adminRouter } from './server/routes/adminRoutes';
 import { walletRouter } from './server/routes/walletRoutes';
 import { gasRouter } from './server/routes/gasRoutes';
-import { cimport tokenRouter from './routes/tokenRoutes';
-  ontractRouter } from './server/routes/contractRoutes';
+import { tokenRouter } from './server/routes/tokenRoutes';
+import { contractRouter } from './server/routes/contractRoutes';
 import { securityHeaders, rateLimiter } from './server/middleware/security';
 
 dotenv.config();
@@ -24,12 +24,12 @@ async function startServer() {
   // Global Middlewares
   app.use(express.json({ limit: '1mb' }));
   app.use(securityHeaders);
-  app.use(rateLimiter(150, 60 * 1000)); // 150 requests per minute per IP
+  app.use(rateLimiter(150, 60 * 1000)); // 150 requests per minute
 
   // CORS setup
   app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     if (req.method === 'OPTIONS') {
       return res.sendStatus(204);
@@ -44,10 +44,7 @@ async function startServer() {
   app.use('/api/wallet', walletRouter);
   app.use('/api/gas', gasRouter);
   app.use('/api/tokens', tokenRouter);
-  
   app.use('/api/contract', contractRouter);
-
-
 
   // Health check endpoint
   app.get('/api/health', (_req, res) => {
@@ -78,6 +75,6 @@ async function startServer() {
 }
 
 startServer().catch((err) => {
-  console.error('[RV.Web3] Failed to start server:', err);
+  console.error('Server failed to start:', err);
   process.exit(1);
 });
