@@ -78,8 +78,6 @@ export default function App() {
           {activeTab === 'admin' && (
             <AdminView lang={lang} onOpenAuthModal={() => setIsAuthModalOpen(true)} />
           )}
-
-
         </main>
 
         {/* Footer */}
