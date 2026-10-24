@@ -1,22 +1,413 @@
-{
-  "name": "exchange",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "ethers": "^6.11.1",
-    "lucide-react": "^0.312.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.3.3",
-    "vite": "^5.0.12",
-    "@vitejs/plugin-react": "^4.2.1",
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0805">
+<title>rv.web3 — Inteligência Global · Carteira USTD</title>
+<style>
+:root{--bg:#070604;--panel:rgba(18,14,10,.85);--line:rgba(243,186,47,.22);--amber:#ffb703;--gold:#F3BA2F;--gold-dim:#c99d34;--muted:#8c7b65;--text:#f5f0e6;--card:#14110d;--card-border:#292218}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif}
+body{overflow-x:hidden;background:radial-gradient(circle at 50% 30%,#241908 0%,#0e0b07 45%,#070604 80%)}
+button,input,select{font:inherit;color:inherit}
+
+/* Navegação Principal */
+.main-nav{position:sticky;top:0;z-index:100;background:linear-gradient(90deg,rgba(12,10,7,.95),rgba(20,15,8,.9));border-bottom:1px solid rgba(243,186,47,.25);padding:12px clamp(16px,4vw,54px);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;backdrop-filter:blur(10px)}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.eye{width:44px;height:32px;flex-shrink:0;color:var(--gold)}
+.nav-brand span{font-size:clamp(18px,2.5vw,26px);letter-spacing:.12em;color:var(--gold);font-weight:700}
+.nav-tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab-btn{padding:8px 16px;border-radius:8px;background:transparent;border:1px solid transparent;color:var(--muted);font-size:14px;letter-spacing:.06em;transition:.25s;cursor:pointer}
+.tab-btn.active{background:rgba(243,186,47,.12);border-color:rgba(243,186,47,.5);color:var(--gold)}
+.tab-btn:hover{border-color:rgba(243,186,47,.3);color:var(--amber)}
+
+/* Seções */
+.section{display:none;animation:fadeIn .4s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Estilos Globais / Painel */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px clamp(16px,4vw,54px);border-bottom:1px solid rgba(243,186,47,.2);position:relative;z-index:5}
+.brand-name{font-size:clamp(20px,3vw,31px);letter-spacing:.12em;color:var(--gold);font-weight:700}
+.brand-sub{font-size:10px;letter-spacing:.29em;color:var(--gold-dim);margin-top:8px}
+.header-actions{display:flex;gap:10px;align-items:center}
+.pill{border:1px solid rgba(243,186,47,.25);border-radius:999px;padding:11px 15px;background:rgba(20,16,10,.8);font-size:12px;letter-spacing:.12em;color:var(--gold);white-space:nowrap}
+.pill.live{color:var(--amber);border-color:rgba(243,186,47,.4)}
+.pill.live span{display:inline-block;width:6px;height:6px;background:var(--amber);border-radius:50%;margin-right:8px;box-shadow:0 0 10px var(--amber)}
+main{max-width:1600px;margin:auto;padding:22px clamp(12px,2.5vw,36px) 28px}
+.status-row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.eyebrow{font-size:10px;letter-spacing:.25em;color:var(--muted);text-transform:uppercase}
+.status-right{font-size:11px;color:var(--amber);letter-spacing:.12em}
+.dashboard{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;align-items:stretch}
+.map-panel{height:min(70vh,760px);min-height:490px;position:relative;overflow:hidden;border:1px solid rgba(243,186,47,.2);border-radius:20px;background:radial-gradient(ellipse at 50% 53%,rgba(45,32,12,.35),rgba(7,6,4,.85) 65%);box-shadow:inset 0 0 80px rgba(243,186,47,.05),0 20px 60px #000}
+#globe{width:100%;height:100%;display:block}
+.map-top{position:absolute;top:18px;left:18px;right:18px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;gap:10px}
+.map-label{font-size:11px;letter-spacing:.17em;color:var(--muted);text-transform:uppercase}
+.map-label small{display:block;margin-top:6px;color:var(--gold-dim);letter-spacing:.1em}
+.live-dot{color:var(--amber);font-size:10px;letter-spacing:.12em}
+.map-controls{position:absolute;right:16px;bottom:18px;display:grid;gap:8px}
+.map-controls button{width:40px;height:40px;border:1px solid var(--line);border-radius:12px;background:rgba(15,12,8,.9);font-size:20px;color:var(--amber);cursor:pointer}
+.map-legend{position:absolute;left:18px;bottom:18px;display:flex;flex-wrap:wrap;gap:12px;font-size:10px;color:var(--muted);background:rgba(10,8,6,.85);padding:10px 12px;border:1px solid var(--line);border-radius:10px}
+.legend-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px}
+.sidebar{display:flex;flex-direction:column;gap:12px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;backdrop-filter:blur(12px)}
+.panel-title{display:flex;align-items:center;justify-content:space-between;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.panel-title b{font-weight:500;color:var(--amber);font-size:9px}
+.metric{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(243,186,47,.08);gap:8px}
+.metric:last-child{border:0;padding-bottom:0}
+.metric-name{font-size:12px;color:var(--muted)}
+.metric-value{font-size:18px;color:#fff;font-variant-numeric:tabular-nums}
+.metric-value em{font-size:10px;color:var(--amber);font-style:normal;margin-left:4px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.nav-btn{border:1px solid rgba(243,186,47,.2);background:rgba(15,12,8,.8);border-radius:10px;padding:10px 14px;color:var(--muted);font-size:11px;letter-spacing:.08em;cursor:pointer}
+.nav-btn.active{background:rgba(243,186,47,.15);border-color:rgba(243,186,47,.5);color:var(--gold)}
+
+/* Estilos da Carteira USTD */
+.wallet-container{max-width:1200px;margin:0 auto;padding:2rem}
+.wallet-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
+@media(max-width:768px){.wallet-grid{grid-template-columns:1fr}}
+.wallet-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:24px}
+.wallet-card h2{font-size:18px;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.btn{width:100%;padding:12px;border-radius:8px;border:none;font-weight:600;cursor:pointer;transition:.2s;margin-top:10px}
+.btn-primary{background:var(--gold);color:#000}
+.btn-primary:hover{background:var(--amber)}
+.btn-secondary{background:rgba(243,186,47,.05);border:1px solid var(--card-border);color:var(--text)}
+.btn-secondary:hover{border-color:var(--gold)}
+.input-group{margin-bottom:14px}
+.input-group label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.input-group input, .input-group select{width:100%;padding:10px;border-radius:8px;background:#090705;border:1px solid var(--card-border);color:#fff}
+.balance-box{font-size:32px;font-weight:700;color:#fff;margin:10px 0;display:flex;align-items:center;gap:12px}
+.balance-box img{width:36px;height:36px;border-radius:50%;border:1px solid var(--gold)}
+.balance-box span{font-size:14px;color:var(--amber)}
+.network-badge{display:inline-block;padding:4px 10px;border-radius:20px;background:rgba(243,186,47,.1);border:1px solid var(--gold);color:var(--gold);font-size:12px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#1a1308;border:1px solid var(--gold);color:var(--amber);padding:12px 20px;border-radius:10px;font-size:13px;transition:.3s;z-index:1000}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+#qr-code canvas,#qr-code img{margin:15px auto;display:block;border-radius:8px}
+</style>
+
+<!-- Ethers.js v6 e QR Code CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.1/ethers.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+<div class="app">
+<!-- Navegação Principal -->
+<nav class="main-nav">
+  <a href="#" class="nav-brand">
+    <svg class="eye" viewBox="0 0 100 60" fill="none" aria-hidden="true">
+      <path d="M5 30C24 8 55 7 82 23L96 25 82 30C58 49 27 48 5 30Z" stroke="currentColor" stroke-width="2.6"/>
+      <circle cx="42" cy="29" r="8" stroke="currentColor" stroke-width="2"/>
+      <circle cx="42" cy="29" r="3" fill="currentColor"/>
+    </svg>
+    <span>rv.web3</span>
+  </a>
+  <div class="nav-tabs">
+    <button class="tab-btn active" data-section="dashboard">🌐 Painel Global</button>
+    <button class="tab-btn" data-section="wallet">💰 Carteira USTD</button>
+  </div>
+</nav>
+
+<!-- Seção: Painel Global -->
+<section id="dashboard" class="section active">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-name">rv.web3 · DEPLOY SYSTEM</div>
+      <div class="brand-sub">SISTEMA HOLOGRÁFICO DE MONITORAMENTO</div>
+    </div>
+    <div class="header-actions">
+      <button class="pill live" id="tokenBtn"><span></span>DEPLOY ACTIVE</button>
+    </div>
+  </header>
+  <main>
+    <div class="status-row">
+      <div class="eyebrow">Matriz de inteligência / Rede Global</div>
+      <div class="status-right">● NODES ONLINE</div>
+    </div>
+    <section class="dashboard">
+      <div class="map-panel">
+        <canvas id="globe"></canvas>
+        <div class="map-top">
+          <div class="map-label">Visualização de Rede<small>AMBAR PROTOCOL • L1</small></div>
+          <div class="live-dot">● LIVE</div>
+        </div>
+        <div class="map-controls">
+          <button id="zoomIn">+</button>
+          <button id="zoomOut">−</button>
+          <button id="rotateBtn">Ⅱ</button>
+        </div>
+        <div class="map-legend">
+          <span><i class="legend-dot" style="background:var(--amber)"></i>Nodes</span>
+          <span><i class="legend-dot" style="background:var(--gold)"></i>Conexões</span>
+        </div>
+      </div>
+      <aside class="sidebar">
+        <div class="panel">
+          <div class="panel-title">Telemetria <b>● SECURE</b></div>
+          <div class="metric"><span class="metric-name">Nós Ativos</span><span class="metric-value" id="nodes">8.492<em>+2.4%</em></span></div>
+          <div class="metric"><span class="metric-name">Sinais de Deploy</span><span class="metric-value" id="signals">2.716</span></div>
+          <div class="metric"><span class="metric-name">Latência</span><span class="metric-value">24<em>ms</em></span></div>
+        </div>
+      </aside>
+    </section>
+  </main>
+</section>
+
+<!-- Seção: Carteira USTD -->
+<section id="wallet" class="section">
+  <div class="wallet-container">
+    <div id="auth-container" style="text-align: center; padding: 40px 0;">
+      <h1 style="color: var(--gold); font-size: 2.2rem; margin-bottom: 10px;">Portal Web3 <span>USTD</span></h1>
+      <p style="color: var(--muted); margin-bottom: 20px;">Conecte sua extensão para gerenciar seu saldo e ativos na rede Ethereum.</p>
+      <button class="btn btn-primary" style="max-width: 300px; margin: 0 auto;" onclick="connectWallet()">Conectar MetaMask</button>
+    </div>
+
+    <div id="wallet-dashboard" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+          <span class="network-badge" id="net-name">Ethereum Mainnet</span>
+          <span id="user-address-short" style="font-family: monospace; margin-left: 10px; color: var(--muted);"></span>
+        </div>
+        <button class="btn btn-secondary" style="width: auto; padding: 6px 14px;" onclick="disconnectWallet()">Desconectar</button>
+      </div>
+
+      <div class="wallet-grid">
+        <div class="wallet-card">
+          <h2>Saldo Disponível <button class="btn btn-secondary" style="width:auto;padding:2px 8px;font-size:12px;" onclick="updateAssetBalance()">🔄 Atualizar</button></h2>
+          <div class="balance-box" id="asset-balance">0.0000 <span>--</span></div>
+          <hr style="border-color: var(--card-border); margin: 15px 0;">
+          <div class="input-group">
+            <label>Selecione o Ativo:</label>
+            <select id="asset-select" onchange="updateAssetBalance()">
+              <option value="USTD">Token USTD (0x4644...655)</option>
+              <option value="NATIVE">Ethereum (ETH)</option>
+              <option value="USDT">USDT (Tether)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="wallet-card">
+          <h2>Enviar Ativos</h2>
+          <div class="input-group">
+            <label>Destino (0x...):</label>
+            <input type="text" id="send-to" placeholder="0x..." />
+          </div>
+          <div class="input-group">
+            <label>Quantidade:</label>
+            <input type="number" step="0.000001" id="send-amount" placeholder="0.0" />
+          </div>
+          <button class="btn btn-primary" onclick="sendSelectedAsset()">Confirmar Envio</button>
+        </div>
+
+        <div class="wallet-card" style="grid-column: 1 / -1; text-align: center;">
+          <h2>Receber Ativos</h2>
+          <div id="qr-code"></div>
+          <input type="text" id="full-address" readonly style="max-width: 500px; margin: 10px auto; width:100%; padding:8px; background:#000; border:1px solid var(--card-border); color:var(--gold); font-family:monospace; text-align:center;" />
+          <button class="btn btn-secondary" style="max-width: 200px; margin: 0 auto;" onclick="copyAddress()">Copiar Endereço</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// Navegação entre abas
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const sectionId=btn.dataset.section;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b===btn));
+    document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===sectionId));
+    if(sectionId==='dashboard') setTimeout(resize,100);
+  });
+});
+
+function showToast(msg){
+  let t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// Canvas Holográfico Global (Tema Âmbar)
+const canvas=document.getElementById('globe');
+const ctx=canvas.getContext('2d');
+let w=0,h=0,scale=1,angle=0,paused=false;
+
+function resize(){
+  const container=canvas.closest('.map-panel');
+  if(!container) return;
+  const r=container.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=Math.max(1,Math.floor(r.width*dpr));
+  canvas.height=Math.max(1,Math.floor(r.height*dpr));
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  w=r.width;
+  h=r.height;
+}
+
+const dots=Array.from({length:1500},()=>({
+  lat:(Math.random()-.5)*Math.PI,
+  lon:Math.random()*Math.PI*2,
+  size:.5+Math.random()*1.2
+}));
+
+function draw(){
+  if(!ctx) return;
+  ctx.clearRect(0,0,w,h);
+  let R=Math.min(w*.43,h*.37)*scale;
+  let cx=w*.5,cy=h*.53;
+  
+  ctx.fillStyle='rgba(20,15,8,.5)';
+  ctx.beginPath();
+  ctx.arc(cx,cy,R,0,Math.PI*2);
+  ctx.fill();
+
+  for(const p of dots){
+    let lon=p.lon+angle;
+    let x=cx+Math.cos(p.lat)*Math.sin(lon)*R;
+    let y=cy-Math.sin(p.lat)*R;
+    let z=Math.cos(p.lat)*Math.cos(lon);
+    
+    if(z>0){
+      ctx.fillStyle='rgba(243,186,47,'+(.2+z*.8)+')';
+      ctx.fillRect(x,y,p.size,p.size);
+    }
+  }
+
+  if(!paused) angle+=.002;
+  requestAnimationFrame(draw);
+}
+
+window.addEventListener('resize',resize);
+setTimeout(()=>{resize();draw();},50);
+
+// Lógica da Carteira com Ethers.js
+let provider, signer, userAddress;
+const ERC20_ABI = [
+  "function balanceOf(address owner) view returns (uint256)",
+  "function decimals() view returns (uint8)",
+  "function symbol() view returns (string)",
+  "function transfer(address to, uint256 amount) returns (bool)"
+];
+
+const TOKEN_CONTRACTS = {
+  1: {
+    USTD: "0x4644E1113FE1a6bA831D85cc4772b3D0c23DE655",
+    USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+  }
+};
+const TOKEN_LOGO_URL = "4882.jpg";
+
+async function connectWallet(){
+  if(typeof window.ethereum==='undefined'){
+    alert('MetaMask não detectada.');
+    return;
+  }
+  try{
+    showToast('Conectando ao ecossistema...');
+    provider=new ethers.BrowserProvider(window.ethereum);
+    const accounts=await provider.send("eth_requestAccounts",[]);
+    signer=await provider.getSigner();
+    userAddress=accounts[0];
+
+    document.getElementById('auth-container').style.display='none';
+    document.getElementById('wallet-dashboard').style.display='block';
+    document.getElementById('user-address-short').textContent=`${userAddress.substring(0,6)}...${userAddress.substring(38)}`;
+    document.getElementById('full-address').value=userAddress;
+
+    document.getElementById('qr-code').innerHTML="";
+    new QRCode(document.getElementById('qr-code'),{text:userAddress,width:128,height:128});
+
+    await updateAssetBalance();
+    showToast('Conectado com sucesso!');
+  }catch(err){
+    console.error(err);
+    showToast('Erro ao conectar carteira.');
   }
 }
+
+async function updateAssetBalance(){
+  if(!provider || !userAddress) return;
+  try{
+    const network=await provider.getNetwork();
+    const chainId=Number(network.chainId);
+    const selectedAsset=document.getElementById('asset-select').value;
+
+    if(selectedAsset==='NATIVE'){
+      const bal=await provider.getBalance(userAddress);
+      document.getElementById('asset-balance').innerHTML=`${parseFloat(ethers.formatEther(bal)).toFixed(4)} <span>ETH</span>`;
+    }else{
+      const tokenAddress=TOKEN_CONTRACTS[chainId]?.[selectedAsset];
+      if(!tokenAddress){
+        document.getElementById('asset-balance').innerHTML=`0.0000 <span>Não suportado</span>`;
+        return;
+      }
+      const contract=new ethers.Contract(tokenAddress,ERC20_ABI,provider);
+      const [bal,dec,sym]=await Promise.all([contract.balanceOf(userAddress),contract.decimals(),contract.symbol()]);
+      const formatted=parseFloat(ethers.formatUnits(bal,dec)).toFixed(4);
+
+      if(selectedAsset==='USTD'){
+        document.getElementById('asset-balance').innerHTML=`<img src="${TOKEN_LOGO_URL}" alt="USTD">${formatted} <span>${sym}</span>`;
+      }else{
+        document.getElementById('asset-balance').innerHTML=`${formatted} <span>${sym}</span>`;
+      }
+    }
+  }catch(err){
+    console.error(err);
+    showToast('Erro ao ler saldo.');
+  }
+}
+
+async function sendSelectedAsset(){
+  const to=document.getElementById('send-to').value.trim();
+  const amount=document.getElementById('send-amount').value.trim();
+  const selectedAsset=document.getElementById('asset-select').value;
+
+  if(!ethers.isAddress(to) || !amount){
+    showToast('Preencha os campos corretamente.');
+    return;
+  }
+
+  try{
+    const network=await provider.getNetwork();
+    const chainId=Number(network.chainId);
+
+    if(selectedAsset==='NATIVE'){
+      showToast('Confirme na MetaMask...');
+      const tx=await signer.sendTransaction({to, value: ethers.parseEther(amount)});
+      await tx.wait();
+      showToast('Enviado com sucesso!');
+    }else{
+      const tokenAddress=TOKEN_CONTRACTS[chainId]?.[selectedAsset];
+      const contract=new ethers.Contract(tokenAddress,ERC20_ABI,signer);
+      const dec=await contract.decimals();
+      const tx=await contract.transfer(to, ethers.parseUnits(amount, dec));
+      await tx.wait();
+      showToast('Transferência concluída!');
+    }
+    updateAssetBalance();
+  }catch(err){
+    console.error(err);
+    showToast('Transação falhou ou foi cancelada.');
+  }
+}
+
+function copyAddress(){
+  navigator.clipboard.writeText(document.getElementById("full-address").value);
+  showToast("Endereço copiado!");
+}
+
+function disconnectWallet(){
+  userAddress=null;
+  signer=null;
+  provider=null;
+  document.getElementById('auth-container').style.display='block';
+  document.getElementById('wallet-dashboard').style.display='none';
+  showToast('Desconectado.');
+}
+</script>
+</body>
+</html>
